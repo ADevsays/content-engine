@@ -1,0 +1,473 @@
+{
+  "name": "generate_script",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"user_message\": \"\",\n  \"state\": \"\",\n  \"chat_id\": \"123\",\n  \"file_name\": \"\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        32
+      ],
+      "id": "7b87de15-277d-4187-ba5d-116b944d13e9",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "content": "## Script response\n",
+        "height": 736,
+        "width": 1680,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -240
+      ],
+      "id": "61246d8d-c3f0-4001-9360-79b573bbb092",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+        "text": "={{ $json.response }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        128
+      ],
+      "id": "c08586a4-d5c6-4d78-b6ad-a168f2849945",
+      "name": "Send a text message",
+      "webhookId": "988351f8-bdd0-4efc-bb30-bb57cdc1d4da",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Bp9TjSPvMdOwq0c",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "conversation_states",
+          "mode": "list",
+          "cachedResultName": "conversation_states"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+            "state": "waiting",
+            "current_script": "={{ $('HTTP Request').item.json.response }}",
+            "user_prompt": "={{ $('When Executed by Another Workflow').item.json.user_message }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "current_script",
+              "displayName": "current_script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "user_prompt",
+              "displayName": "user_prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        880,
+        80
+      ],
+      "id": "270419b9-89ca-4318-9f8b-05c2e0abf45e",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "current_file",
+          "mode": "list",
+          "cachedResultName": "current_file"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+            "file_name": "={{ $('When Executed by Another Workflow').item.json.file_name }}",
+            "file_id": "null",
+            "file_url": "null"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "file_id",
+              "displayName": "file_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "file_url",
+              "displayName": "file_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        608,
+        -128
+      ],
+      "id": "bd52b284-05c7-4be8-92b4-e6b5a3117871",
+      "name": "Insert or update rows in a table1",
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+        "text": "¿Confirmas este guion?",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Sí, confirmar",
+                    "additionalFields": {
+                      "callback_data": "test_ok"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "No, re hacer",
+                    "additionalFields": {
+                      "callback_data": "regenerate_text"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Cancelar",
+                    "additionalFields": {
+                      "callback_data": "cancel"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        208
+      ],
+      "id": "f4a22993-622c-41d1-b882-bd99015f18d6",
+      "name": "Send a text message1",
+      "webhookId": "439f96ab-3305-43f3-b95f-06cb69d67018",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Bp9TjSPvMdOwq0c",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "scripts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "style",
+              "keyValue": "={{ $json.style }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -64
+      ],
+      "id": "b18ce6b0-d23c-4246-bcf5-89386ec814e0",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "s1bsuigA76VUVp1b",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json?.user_message ?? \"viral\";\nconst message = input.toLowerCase();\n// Buscamos específicamente el patrón \"formato viral\" o \"formato serie\"\nconst matchViral = message.match(/formato\\s+viral/);\nconst matchSerie = message.match(/formato\\s+serie/);\n\nlet style = \"\";\n\nif (matchViral) {\n  style = \"viral\";\n} else if (matchSerie) {\n  style = \"serie\";\n} else {\n  // Búsqueda simple en caso de que no se use la palabra \"formato\"\n  if (message.includes(\"viral\")) style = \"viral\";\n  else if (message.includes(\"serie\")) style = \"serie\";\n  else style = \"viral\"; // Valor por defecto\n}\n\nreturn {\n  style: style\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -16
+      ],
+      "id": "28358208-8ae1-4024-a406-be7254a6e28e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.codecollab.cloud/script/generate",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $('When Executed by Another Workflow').item.json.user_message }}"
+            },
+            {
+              "name": "context",
+              "value": "={{ $json.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        240,
+        -16
+      ],
+      "id": "5abc6173-fe72-4e9e-a708-43654bd7eb69",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Insert or update rows in a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "ItyZo1I4kq8GBspEZkBjq"
+  },
+  "versionId": "b46345ec-b3cd-49e9-bb48-d7edc17e5763",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51cc9123a604a2c652df92102de159d4452d608b60087a069ea5ae12f7b477f0"
+  },
+  "id": "O551Tl_eD-dcDzhL7CTTC",
+  "tags": []
+}

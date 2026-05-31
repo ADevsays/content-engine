@@ -1,0 +1,480 @@
+{
+  "name": "confirm_audio",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d8086222-651a-460f-a9b3-8cdac386b5e5",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.callback_query }}",
+              "rightValue": "guion_ok",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        352,
+        448
+      ],
+      "id": "65748ce4-6e35-4aa0-bcf3-4b20274a0c79",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "conversation_states",
+          "mode": "list",
+          "cachedResultName": "conversation_states"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+            "state": "initial",
+            "current_script": "=\"\""
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "current_script",
+              "displayName": "current_script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1232,
+        256
+      ],
+      "id": "b553563d-cc0b-4235-8895-4dd435de4d6a",
+      "name": "Insert or update rows in a table1",
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QBPApwMOockpaIgAmZFGH",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QBPApwMOockpaIgAmZFGH",
+          "cachedResultName": "generate_voice"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "script": "={{ $json.script }}",
+            "chat_id": "={{ $json.chat_id}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "script",
+              "displayName": "script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        512
+      ],
+      "id": "7bd92675-7d82-497b-8494-215293253f0e",
+      "name": "Call 'generate_voice'"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d6c5e03c-eeef-4219-bcb9-1f749ee894a0",
+              "name": "script",
+              "value": "={{ $json.current_script }}",
+              "type": "string"
+            },
+            {
+              "id": "963a418e-b320-4981-87f0-442a1c548770",
+              "name": "chat_id",
+              "value": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        688
+      ],
+      "id": "0cef2aca-45e0-495f-9ac5-c530e49e3c20",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Execute a SQL query1').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        560,
+        624
+      ],
+      "id": "6dca635a-976f-4530-b0b0-4c1cb63fbe5d",
+      "name": "Delete a file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SIZlibQ9DEPj0TYs",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  cf.file_name, \n  cf.file_id, \n  cf.file_url,\n  cs.current_script\nFROM current_file cf\nLEFT JOIN conversation_states cs \n  ON cs.chat_id = cf.chat_id\nWHERE cf.chat_id = $1::text;",
+        "options": {
+          "queryReplacement": "={{ $json.chat_id.toString() }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        144,
+        448
+      ],
+      "id": "073bc8c6-1c70-4a6e-a552-13d8b30dbde9",
+      "name": "Execute a SQL query1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+        "text": "=Audio {{ $('Execute a SQL query1').item.json.file_name }} subido al Notion.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        256
+      ],
+      "id": "6f912ec4-6156-4286-bb94-655a5e90bc31",
+      "name": "Send a text message",
+      "webhookId": "0f757577-fbcc-467f-9423-05a9cc906413",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Bp9TjSPvMdOwq0c",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT current_script\n  FROM conversation_states\n  WHERE chat_id = $1::text;",
+        "options": {
+          "queryReplacement": "={{ $('When Executed by Another Workflow').item.json.chat_id.toString() }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        768,
+        704
+      ],
+      "id": "81571cd8-4f85-40f7-a854-2188ac5a5bee",
+      "name": "Execute a SQL query",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"callback_query\": \"\",\n  \"chat_id\": null\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        448
+      ],
+      "id": "27906d24-a9f6-4353-a916-3386ddd7bdb7",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "1582805f78298146b6d1f5ec878cd4c5",
+          "mode": "id"
+        },
+        "title": "={{ $('Execute a SQL query1').item.json.file_name }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "richText": true,
+              "text": {
+                "text": [
+                  {
+                    "text": "=Enlace al audio del nuevo vídeo:\n\n",
+                    "annotationUi": {}
+                  },
+                  {
+                    "text": "={{ $('Execute a SQL query1').item.json.file_url }}\n\n",
+                    "isLink": true,
+                    "textLink": "={{ $('Execute a SQL query1').item.json.file_url }}\n\n",
+                    "annotationUi": {}
+                  },
+                  {
+                    "text": "=\nGuión completo: \n{{ $('Execute a SQL query1').item.json.current_script }}",
+                    "annotationUi": {}
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        336
+      ],
+      "id": "5dfb391a-61d3-4866-9c13-30d7795a23bc",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "Z0zJ9dNu1KLybTY5",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Call 'generate_voice'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table1": {
+      "main": [
+        []
+      ]
+    },
+    "Delete a file": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "e4ce6aa7-dbbd-4e7f-9b7f-51e477f11945",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51cc9123a604a2c652df92102de159d4452d608b60087a069ea5ae12f7b477f0"
+  },
+  "id": "SV6genR4O_PfrUGSNDYiS",
+  "tags": []
+}

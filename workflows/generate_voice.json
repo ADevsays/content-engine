@@ -1,0 +1,419 @@
+{
+  "name": "generate_voice",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"script\": \"\",\n  \"chat_id\": 0\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -528,
+        -80
+      ],
+      "id": "785ed0e6-a2f8-4a09-a80e-af7e0fa07ef4",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+        "binaryData": true,
+        "binaryPropertyName": "audio",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        0
+      ],
+      "id": "9e96c802-80b9-4f37-8566-e5229dbb1172",
+      "name": "Send an audio file",
+      "webhookId": "ec1ed48c-206a-4a32-b5f5-f4b1e646a6e0",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Bp9TjSPvMdOwq0c",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+        "text": "¿Te quedas con este audio?",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Sí, confirmar",
+                    "additionalFields": {
+                      "callback_data": "guion_ok"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "No, re hacer",
+                    "additionalFields": {
+                      "callback_data": "regenerate"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        32
+      ],
+      "id": "ea7b23ba-f0d7-445a-a4ff-e3ba4289f830",
+      "name": "Send a text message",
+      "webhookId": "439f96ab-3305-43f3-b95f-06cb69d67018",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Bp9TjSPvMdOwq0c",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT file_name \n    FROM current_file\n    WHERE chat_id = $1::text;",
+        "options": {
+          "queryReplacement": "={{ $json.chat_id.toString() }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -304,
+        -240
+      ],
+      "id": "cb77a2cd-28d2-4d06-9db2-7549c7f25714",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f4cbfb6-88e8-4306-9686-5332c5b454ef",
+              "name": "script",
+              "value": "={{ $('When Executed by Another Workflow').item.json.script.replace(/[\"']/g, \"\").replace(/\\r?\\n|\\r/g, \" \").trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        -80
+      ],
+      "id": "68a49b8f-5ef6-4f0a-a9b9-38629886e27c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/jw42oiS8zrc3XIqNbXyz",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "={{ $env.ELEVENLABS_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.script }}\",\n  \"model_id\": \"eleven_turbo_v2_5\",\n  \"voice_settings\": {\n    \"stability\": 0.55,\n    \"similarity_boost\": 1,\n    \"speed\": 0.91\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "audio"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        96,
+        -176
+      ],
+      "id": "c5064b74-5638-499c-9c47-445fc2054d14",
+      "name": "Eleven Labs Peticion"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Safely extract the filename from the SQL node\nlet targetName = 'processed_audio';\n\ntry {\n  const sqlResults = $('Execute a SQL query').first();\n  if (sqlResults && sqlResults.json.file_name) {\n    targetName = sqlResults.json.file_name;\n  }\n} catch (e) {\n  // Fallback if the SQL node is not reachable in the current path\n  console.log('SQL node reference failed, using fallback name');\n  throw e;\n}\n\n// 2. Update binary metadata for all items\nreturn $input.all().map(item => {\n  if (item.binary && item.binary.audio) {\n    // Ensure the extension is .mp3 to prevent FFmpeg muxer errors\n    const sanitizedName = targetName.toLowerCase().endsWith('.mp3') \n      ? targetName \n      : `${targetName}.mp3`;\n    \n    // Update n8n binary object properties\n    item.binary.audio.fileName = sanitizedName;\n    item.binary.audio.fileExtension = 'mp3';\n  }\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        -304
+      ],
+      "id": "ea8e2fbb-602f-4dd7-b71e-b2a6678cd3fb",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "=POST",
+        "url": "https://app.codecollab.cloud/audio/cut",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        640,
+        -352
+      ],
+      "id": "d4839776-4d1d-4448-b540-df2f4c81dc4a",
+      "name": "Cut audio1"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "current_file",
+          "mode": "list",
+          "cachedResultName": "current_file"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('When Executed by Another Workflow').item.json.chat_id }}",
+            "file_name": "={{ $('Execute a SQL query').item.json.file_name }}",
+            "file_id": "={{ $json.file_id }}",
+            "file_url": "={{ $json.drive_link }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "file_id",
+              "displayName": "file_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "file_url",
+              "displayName": "file_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        -256
+      ],
+      "id": "7c39c5c9-55a8-472e-a814-1422818564a9",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an audio file": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Eleven Labs Peticion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eleven Labs Peticion": {
+      "main": [
+        [
+          {
+            "node": "Send an audio file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Cut audio1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cut audio1": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "ItyZo1I4kq8GBspEZkBjq"
+  },
+  "versionId": "344b2cd3-d868-45af-808b-1999cccfebe2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51cc9123a604a2c652df92102de159d4452d608b60087a069ea5ae12f7b477f0"
+  },
+  "id": "QBPApwMOockpaIgAmZFGH",
+  "tags": []
+}

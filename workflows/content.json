@@ -1,0 +1,1113 @@
+{
+  "name": "content",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "scripts",
+          "mode": "list",
+          "cachedResultName": "scripts"
+        },
+        "embeddingBatchSize": 500,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        64
+      ],
+      "id": "2bec5a2c-ea99-437a-9134-c8b532dc0699",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Hg0uWkeTFTpCklZK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "binaryMode": "specificField",
+        "binaryDataKey": "=Documento",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        224
+      ],
+      "id": "63c4f721-0857-44a0-a461-4bd087a83f13",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "formTitle": "Guiones",
+        "formDescription": "Envía tu formulario",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Documento",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        96,
+        64
+      ],
+      "id": "9d391ae9-a2c6-45d1-b963-6701f421a301",
+      "name": "On form submission",
+      "webhookId": "ad3c6c09-8dfb-4283-9f09-33d434b92e72"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "inputType": "binary",
+        "binaryPropertyName": "file",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        1168
+      ],
+      "id": "9dc7e505-abe3-43ba-87d0-9f10a01e3e03",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8l4SbynHQ7STOWCZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Transcripción de audio\n",
+        "height": 464,
+        "width": 816
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        1056
+      ],
+      "id": "3f54c29d-0cdc-4d12-bddc-177cbfc3ce4a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5c5ff338-46a0-42e1-83f2-0ac3500ee65f",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        1248
+      ],
+      "id": "10455ccb-1d0f-4442-b996-d0c827e7f14f",
+      "name": "Webhook",
+      "webhookId": "5c5ff338-46a0-42e1-83f2-0ac3500ee65f"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"transcription\": $json.content.parts[0].text } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        592,
+        1264
+      ],
+      "id": "2115d9e8-11c1-4a56-8922-f04b14a583a6",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "Agregar guiones\n",
+        "height": 480,
+        "width": 768,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        32,
+        0
+      ],
+      "id": "75c3d2bb-2527-4a34-afd5-627c09c796c2",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Crear guiones\n",
+        "height": 960,
+        "width": 1680,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        896,
+        304
+      ],
+      "id": "6a65e3c5-17b9-4467-b1c5-3415ea4af7d0",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "chunkSize": 10000000
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        608,
+        336
+      ],
+      "id": "94cafc2d-eb5c-4e45-b8d4-c0d508205c35",
+      "name": "Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        640
+      ],
+      "id": "4ad96f8d-6903-441b-95a7-a5cac2f54d1e",
+      "name": "Telegram Trigger",
+      "webhookId": "bc01f7b3-6d5b-46e2-8b2e-67eb32d8f0cd",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Bp9TjSPvMdOwq0c",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-light-v2.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        192,
+        320
+      ],
+      "id": "aafccaff-3700-425c-99e8-5249e6de0548",
+      "name": "Embeddings Cohere1",
+      "credentials": {
+        "cohereApi": {
+          "id": "FQ8L3xcUMRhdaSkj",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT state, current_script, user_prompt\n  FROM conversation_states\n  WHERE chat_id = $1::text;",
+        "options": {
+          "queryReplacement": "={{ $json.callback_query?.message?.chat?.id || $json.message?.chat?.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        464
+      ],
+      "id": "cd0c0859-d572-4ff6-a2db-75d92d659da1",
+      "name": "Execute a SQL query",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f5b81559-16f7-4a37-a131-92b11cf8a293",
+              "leftValue": "={{ $('Merge').item.json.state }}",
+              "rightValue": "waiting",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1744,
+        640
+      ],
+      "id": "5a60d13a-2737-4037-8ce7-a8bcaf14c3dc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "O551Tl_eD-dcDzhL7CTTC",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/O551Tl_eD-dcDzhL7CTTC",
+          "cachedResultName": "generate_script"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+            "user_message": "={{ $('Telegram Trigger').item.json.message.text }}",
+            "state": "={{ $('Execute a SQL query').item.json.current_script }}",
+            "file_name": "={{ $json.file_name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "user_message",
+              "displayName": "user_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2272,
+        624
+      ],
+      "id": "86d7b200-ce53-45aa-bca7-2706be55c294",
+      "name": "Call 'generate_script'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QBPApwMOockpaIgAmZFGH",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QBPApwMOockpaIgAmZFGH",
+          "cachedResultName": "generate_voice"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "script": "={{ $('Telegram Trigger').item.json.message.text }}",
+            "chat_id": "={{ $('Telegram Trigger').item.json.message.chat.id.toString() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "script",
+              "displayName": "script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2320,
+        352
+      ],
+      "id": "a15860fd-76dc-4076-b71b-c177c4dd9589",
+      "name": "Call 'generate_voice'"
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiResponse = $('Telegram Trigger').first().json.message.text;\nconst match = aiResponse.match(/\\[(.*?)\\]/);\n\n// Si encuentra algo entre [], lo extrae. Si no, limpia la respuesta por si acaso.\nconst fileName = match ? match[1] : aiResponse.trim();\n\n// Devolvemos el nombre limpio listo para usar\nreturn {\n  file_name: fileName.replace(/[/\\\\?%*:|\"<>]/g, '') // Eliminamos caracteres prohibidos en archivos\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        608
+      ],
+      "id": "e71fde9f-b453-4d29-9b3b-2d10bfe574eb",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "78cdd92d-b6cd-4e7e-9bd4-89c4f46af34b",
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message?.text ? \"is_msg\" : \"no\" }}",
+                    "rightValue": "is_msg",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cd641a74-d17b-4b71-ab0a-079dac4dd94d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f0cfa669-5651-479b-adef-f5aedaf04904",
+                    "leftValue": "={{ $json.callback_query?.data ? \"is_call\" : \"no\" }}",
+                    "rightValue": "is_call",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1504,
+        656
+      ],
+      "id": "a710c70e-4684-455a-b25d-c26e217725fe",
+      "name": "Switch",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "SV6genR4O_PfrUGSNDYiS",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/SV6genR4O_PfrUGSNDYiS",
+          "cachedResultName": "confirm_audio"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "callback_query": "={{ $('Telegram Trigger').item.json.callback_query.data }}",
+            "chat_id": "={{ $json.callback_query.from.id.toString() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "callback_query",
+              "displayName": "callback_query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2240,
+        848
+      ],
+      "id": "e83d2c3e-2b7c-4de4-b8b2-e31d2a8f2882",
+      "name": "Call 'confirm_audio'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f5b81559-16f7-4a37-a131-92b11cf8a293",
+              "leftValue": "={{ $json.callback_query.message.text }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1792,
+        800
+      ],
+      "id": "0802a35d-52ab-4b36-a74c-460bbef7111f",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT file_name\nFROM current_file\nWHERE chat_id = $1::text;",
+        "options": {
+          "queryReplacement": "={{ $json.callback_query.from.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2016,
+        1008
+      ],
+      "id": "55fdea8f-d545-4c5c-8967-7a59267a0ea6",
+      "name": "Execute a SQL query1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1328,
+        560
+      ],
+      "id": "5d7e6543-f92e-499f-8efb-5241f43ee42f",
+      "name": "Merge",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1LrhJ2YYhg79dKQuRIrUk",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/1LrhJ2YYhg79dKQuRIrUk",
+          "cachedResultName": "confirm_script"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "callback_query": "={{ $('Switch').item.json.callback_query.data }}",
+            "chat_id": "={{ $('Switch').item.json.callback_query.message.chat.id }}",
+            "current_script": "={{ $('Switch').item.json.current_script }}",
+            "user_message": "={{ $('Switch').item.json.user_prompt }}",
+            "state": "={{ $('Switch').item.json.state }}",
+            "file_name": "={{ $json.file_name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "callback_query",
+              "displayName": "callback_query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "current_script",
+              "displayName": "current_script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_message",
+              "displayName": "user_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2272,
+        1104
+      ],
+      "id": "2b866612-a786-406a-a204-41908a275356",
+      "name": "Call 'confirm_script'"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "=Estamos listos para crear tus vídeos 😎",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1744,
+        416
+      ],
+      "id": "06c28ce0-c85b-482b-a07d-4d02bc253573",
+      "name": "Send a text message",
+      "webhookId": "c2160f97-7073-4b3d-b7c0-bf68ecf2a8de",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Bp9TjSPvMdOwq0c",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "conversation_states",
+          "mode": "list",
+          "cachedResultName": "conversation_states"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.message.chat.id }}",
+            "state": "waiting",
+            "current_script": "={{ $json.message.text }}",
+            "user_prompt": "={{ $json.user_prompt }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "current_script",
+              "displayName": "current_script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "user_prompt",
+              "displayName": "user_prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2048,
+        400
+      ],
+      "id": "88510a8f-f424-4c53-963a-31c0298d385d",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "ln1tIdyTO1VEiTWa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback_query.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        960
+      ],
+      "id": "dec53996-5c3b-4cec-b9ed-83b49e2f0a65",
+      "name": "Answer Query a callback",
+      "webhookId": "4503554b-1039-428b-ae48-bb0512c046ea",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Bp9TjSPvMdOwq0c",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'generate_script'": {
+      "main": [
+        []
+      ]
+    },
+    "Call 'generate_voice'": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Call 'generate_script'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Answer Query a callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Call 'confirm_audio'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Call 'confirm_script'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Call 'generate_voice'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "ItyZo1I4kq8GBspEZkBjq"
+  },
+  "versionId": "f098f3c9-c471-4a50-9909-63c25a6afc46",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51cc9123a604a2c652df92102de159d4452d608b60087a069ea5ae12f7b477f0"
+  },
+  "id": "DnrWZRqhrX84FQC1",
+  "tags": []
+}
