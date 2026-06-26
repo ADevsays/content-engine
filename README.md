@@ -1,50 +1,56 @@
-# n8n Installer with Workflows
+# Content Engine — n8n One-Click for Dokploy
 
-This repository provides a complete setup to run your own n8n instance using Docker, pre-configured and ready to import a set of useful workflows.
+Deploy this repo from Dokploy to get a fully configured n8n instance with pre-imported workflows and credentials. No manual intervention needed after filling in environment variables.
 
-## Prerequisites
-- A VPS with Docker installed.
-- A domain or subdomain pointed to your VPS IP.
+## How it works
 
-## Installation
+1. **n8n** starts and exposes a healthcheck at `/healthz`.
+2. **n8n-importador** waits for n8n to be healthy, then:
+   - Resolves `credentials.json.template` with `envsubst` (replaces `${VAR}` placeholders with your env values).
+   - Imports the resolved credentials into n8n.
+   - Imports all workflows from the `workflows/` directory.
+   - Exits with code 0.
 
-### Option 1: Quick Install (via curl)
-Run the following command directly on your VPS. It will guide you through cloning and setting up the project:
-```bash
-curl -sSL https://raw.githubusercontent.com/<your-username>/<your-repo-name>/main/install.sh | bash
-```
+## Deployment on Dokploy
 
----
+1. **Create a Compose project** in Dokploy and point it to this repository.
+2. **Fill in environment variables** in the Dokploy panel (see below).
+3. **Deploy**. Dokploy handles Traefik routing — no ports needed.
+4. **Access n8n** at `https://<your-n8n-domain>` and create your admin account.
 
-### Option 2: Manual Installation
+## Environment Variables
 
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd <repo-name>
-   ```
+### Mandatory
 
-2. **Configure environment:**
-   Copy the example environment file and fill in your details:
-   ```bash
-   cp .env.example .env
-   nano .env
-   ```
-   *Make sure to configure `N8N_DOMAIN` and a secure random key for `N8N_ENCRYPTION_KEY`.*
+| Variable | Description |
+|---|---|
+| `N8N_DOMAIN` | Domain where n8n will be accessible |
+| `N8N_ENCRYPTION_KEY` | Encryption key for stored credentials (generate with `openssl rand -hex 16`) |
+| `GENERIC_TIMEZONE` | Timezone (default: `America/Bogota`) |
 
-3. **Run the installer:**
-   Execute the installation script. This will start n8n and import the workflows.
-   ```bash
-   bash install.sh
-   ```
+### Optional — API Keys
 
----
+These are injected into the credentials template. Leave empty if unused.
 
-## Post-Installation Steps
+| Variable | Service |
+|---|---|
+| `ELEVENLABS_API_KEY` | ElevenLabs voice generation |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_API_KEY` | Supabase API key |
+| `POSTGRES_HOST` | PostgreSQL host |
+| `POSTGRES_PORT` | PostgreSQL port (default: 5432) |
+| `POSTGRES_DB` | PostgreSQL database name |
+| `POSTGRES_USER` | PostgreSQL user |
+| `POSTGRES_PASSWORD` | PostgreSQL password |
+| `COHERE_API_KEY` | Cohere embeddings API |
+| `GOOGLE_GEMINI_API_KEY` | Google Gemini API |
+| `NOTION_API_KEY` | Notion integration token |
+| `GOOGLE_CLIENT_ID` | Google OAuth2 client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth2 client secret |
 
-1. **Access n8n:**
-   Go to `https://<your-n8n-domain>` and register your initial owner/admin account through the setup wizard.
+## Post-Deployment
 
-2. **Finalize configuration:**
-   - Configure any missing credentials inside n8n for your active nodes (OpenAI, Google, Telegram, etc.).
-   - Activate your workflows (they are imported in a deactivated state by default).
+1. Go to `https://<your-n8n-domain>` and register your admin account.
+2. Activate the workflows you need (they are imported deactivated by default).
+3. Configure any remaining credentials directly in the n8n UI if needed.

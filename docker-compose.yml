@@ -2,43 +2,77 @@ services:
   n8n:
     image: docker.n8n.io/n8nio/n8n:latest
     restart: always
-    ports:
-      - "${HOST_PORT:-5678}:5678"
     environment:
       - N8N_HOST=${N8N_DOMAIN}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - NODE_ENV=production
       - WEBHOOK_URL=https://${N8N_DOMAIN}/
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-UTC}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-America/Bogota}
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - N8N_USER_MANAGEMENT_DISABLED=false
-      - N8N_ENVS_TO_BYPASS=ELEVENLABS_API_KEY
-      - CREDENTIALS_OVERWRITE_DATA={"telegramApi":{"accessToken":"$TELEGRAM_BOT_TOKEN"},"supabaseApi":{"host":"$SUPABASE_URL","apiKey":"$SUPABASE_API_KEY"},"postgres":{"host":"$POSTGRES_HOST","port":$POSTGRES_PORT,"database":"$POSTGRES_DB","user":"$POSTGRES_USER","password":"$POSTGRES_PASSWORD"},"cohereApi":{"apiKey":"$COHERE_API_KEY"},"googlePalmApi":{"apiKey":"$GOOGLE_GEMINI_API_KEY"},"notionApi":{"apiKey":"$NOTION_API_KEY"},"googleDriveOAuth2Api":{"clientId":"$GOOGLE_CLIENT_ID","clientSecret":"$GOOGLE_CLIENT_SECRET"}}
-    env_file:
-      - .env
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_API_KEY=${SUPABASE_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - GOOGLE_GEMINI_API_KEY=${GOOGLE_GEMINI_API_KEY}
+      - NOTION_API_KEY=${NOTION_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     volumes:
       - n8n_data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:5678/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    networks:
+      - content-engine-net
 
   n8n-importador:
     image: docker.n8n.io/n8nio/n8n:latest
+    restart: "no"
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_API_KEY=${SUPABASE_API_KEY}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - GOOGLE_GEMINI_API_KEY=${GOOGLE_GEMINI_API_KEY}
+      - NOTION_API_KEY=${NOTION_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
     entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "
-      echo 'Esperando a que n8n inicialice...' &&
-      sleep 15 &&
-      echo 'Importando credenciales...' &&
-      n8n import:credentials --input=/tmp/credentials.json &&
-      echo 'Importando flujos de trabajo...' &&
-      n8n import:workflow --separate --input=/tmp/workflows &&
-      echo '¡Importación completada!'
-      "
+    command:
+      - |
+        set -e
+        echo 'Resolviendo template de credenciales...'
+        envsubst < /data/credentials.json.template > /tmp/credentials_resolved.json
+        echo 'Importando credenciales...'
+        n8n import:credentials --input=/tmp/credentials_resolved.json
+        echo 'Importando workflows...'
+        n8n import:workflow --separate --input=/data/workflows
+        echo 'Importacion completada exitosamente.'
     volumes:
       - n8n_data:/home/node/.n8n
-      - ./credentials.json:/tmp/credentials.json
-      - ./workflows:/tmp/workflows
+      - ./credentials.json.template:/data/credentials.json.template:ro
+      - ./workflows:/data/workflows:ro
     depends_on:
-      - n8n
+      n8n:
+        condition: service_healthy
+    networks:
+      - content-engine-net
 
 volumes:
   n8n_data:
+
+networks:
+  content-engine-net:
