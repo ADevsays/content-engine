@@ -55,6 +55,7 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
       - ./credentials.json.template:/data/credentials.json.template:ro
+      - ./schema.sql:/data/schema.sql:ro
       - ./workflows:/data/workflows:ro
       - ./import.sh:/data/import.sh:ro
     depends_on:
