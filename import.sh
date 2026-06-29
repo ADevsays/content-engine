@@ -17,7 +17,7 @@ awk '{
 echo 'Ejecutando migracion de base de datos...'
 PG_MODULE=$(find /usr/local/lib/node_modules -name "index.js" -path "*/pg/lib/index.js" 2>/dev/null | head -1 | sed 's|/lib/index.js||')
 
-node -e "
+node --dns-result-order=ipv4first -e "
 const { Client } = require('${PG_MODULE}');
 const fs = require('fs');
 
