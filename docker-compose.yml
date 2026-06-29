@@ -19,7 +19,7 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     volumes:
-      - n8n_data_v2:/home/node/.n8n
+      - n8n_data:/home/node/.n8n
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:5678/healthz || exit 1"]
       interval: 10s
@@ -49,7 +49,7 @@ services:
     entrypoint: ["/bin/sh"]
     command: ["/data/import.sh"]
     volumes:
-      - n8n_data_v2:/home/node/.n8n
+      - n8n_data:/home/node/.n8n
       - ./credentials.json.template:/data/credentials.json.template:ro
       - ./schema.sql:/data/schema.sql:ro
       - ./workflows:/data/workflows:ro
@@ -61,7 +61,7 @@ services:
       - content-engine-net
 
 volumes:
-  n8n_data_v2:
+  n8n_data:
 
 networks:
   content-engine-net:
