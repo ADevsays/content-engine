@@ -315,7 +315,7 @@
         "resource": "databasePage",
         "databaseId": {
           "__rl": true,
-          "value": "1582805f78298146b6d1f5ec878cd4c5",
+          "value": "={{ $env[\"NOTION_DATABASE_ID\"] }}",
           "mode": "id"
         },
         "title": "={{ $('Execute a SQL query1').item.json.file_name }}",
