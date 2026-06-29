@@ -1,6 +1,3 @@
--- Enable pgvector extension (required for scripts.embedding)
-CREATE EXTENSION IF NOT EXISTS vector;
-
 -- Conversation state per Telegram chat
 CREATE TABLE IF NOT EXISTS conversation_states (
   chat_id       text NOT NULL PRIMARY KEY,
@@ -19,12 +16,10 @@ CREATE TABLE IF NOT EXISTS current_file (
   last_updated timestamp without time zone
 );
 
--- Script content with vector embedding for semantic search
+-- Script reference content per style
 CREATE TABLE IF NOT EXISTS scripts (
   id        bigint NOT NULL PRIMARY KEY,
   content   text,
-  metadata  jsonb,
-  embedding vector(1024),
   style     text
 );
 

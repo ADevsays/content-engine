@@ -31,12 +31,39 @@ const client = new Client({
 });
 
 const sql = fs.readFileSync('/data/schema.sql', 'utf8');
+const statements = sql
+  .split(';')
+  .map(s => s.trim())
+  .filter(s => s.length > 0);
 
-client.connect()
-  .then(() => client.query(sql))
-  .then(() => { console.log('Migracion completada.'); return client.end(); })
-  .catch(err => { console.error('Error en migracion:', err.message); process.exit(1); });
+(async () => {
+  await client.connect();
+  console.log('[DB] Conectado a PostgreSQL');
+
+  let success = 0;
+  let failed = 0;
+
+  for (const stmt of statements) {
+    const tableMatch = stmt.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\S+)/i);
+    const label = tableMatch ? tableMatch[1] : stmt.substring(0, 50);
+
+    try {
+      await client.query(stmt);
+      console.log('[OK] ' + label);
+      success++;
+    } catch (err) {
+      console.error('[ERROR] ' + label + ' -> ' + err.message);
+      failed++;
+    }
+  }
+
+  await client.end();
+  console.log('[DB] Migracion finalizada: ' + success + ' exitosas, ' + failed + ' errores');
+
+  if (failed > 0) process.exit(1);
+})();
 "
+
 
 # ─── 3. Import credentials ───────────────────────────────────────────────────
 echo 'Importando credenciales...'

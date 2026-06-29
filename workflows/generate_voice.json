@@ -34,7 +34,7 @@
       "webhookId": "ec1ed48c-206a-4a32-b5f5-f4b1e646a6e0",
       "credentials": {
         "telegramApi": {
-          "id": "5Bp9TjSPvMdOwq0c",
+          "id": "cred-telegram-001",
           "name": "Telegram account"
         }
       }
@@ -85,7 +85,7 @@
       "webhookId": "439f96ab-3305-43f3-b95f-06cb69d67018",
       "credentials": {
         "telegramApi": {
-          "id": "5Bp9TjSPvMdOwq0c",
+          "id": "cred-telegram-001",
           "name": "Telegram account"
         }
       }
@@ -108,7 +108,7 @@
       "name": "Execute a SQL query",
       "credentials": {
         "postgres": {
-          "id": "ln1tIdyTO1VEiTWa",
+          "id": "cred-postgres-001",
           "name": "Postgres account"
         }
       }
@@ -135,40 +135,6 @@
       ],
       "id": "68a49b8f-5ef6-4f0a-a9b9-38629886e27c",
       "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.elevenlabs.io/v1/text-to-speech/jw42oiS8zrc3XIqNbXyz",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "xi-api-key",
-              "value": "={{ $env.ELEVENLABS_API_KEY }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"text\": \"{{ $json.script }}\",\n  \"model_id\": \"eleven_turbo_v2_5\",\n  \"voice_settings\": {\n    \"stability\": 0.55,\n    \"similarity_boost\": 1,\n    \"speed\": 0.91\n  }\n}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file",
-              "outputPropertyName": "audio"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        96,
-        -176
-      ],
-      "id": "c5064b74-5638-499c-9c47-445fc2054d14",
-      "name": "Eleven Labs Peticion"
     },
     {
       "parameters": {
@@ -310,10 +276,102 @@
       "name": "Insert or update rows in a table",
       "credentials": {
         "postgres": {
-          "id": "ln1tIdyTO1VEiTWa",
+          "id": "cred-postgres-001",
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.script }}\",\n  \"model_id\": \"eleven_multilingual_v2\",\n    \"voice_settings\": {\n      \"stability\": 0.48,\n      \"similarity_boost\": 1.0,\n      \"style\": 0.41,\n      \"use_speaker_boost\": true,\n      \"velocity\": 0.98\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "audio"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        112,
+        -144
+      ],
+      "id": "34146b68-6b75-4efe-b081-53358b914968",
+      "name": "API De ElevenLabs"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.codecollab.cloud/elevenlabs/tts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.script }}"
+            },
+            {
+              "name": "voice_id"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "audio"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        112,
+        -432
+      ],
+      "id": "c5064b74-5638-499c-9c47-445fc2054d14",
+      "name": "Tokens Gratis (5k)"
+    },
+    {
+      "parameters": {
+        "content": "## Generación de Voz con IA",
+        "height": 880,
+        "width": 1856,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        -560
+      ],
+      "id": "235a14a1-55fd-43a5-ae04-518951030555",
+      "name": "Sticky Note"
     }
   ],
   "pinData": {},
@@ -355,23 +413,7 @@
       "main": [
         [
           {
-            "node": "Eleven Labs Peticion",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Eleven Labs Peticion": {
-      "main": [
-        [
-          {
-            "node": "Send an audio file",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Code in JavaScript",
+            "node": "API De ElevenLabs",
             "type": "main",
             "index": 0
           }
@@ -399,21 +441,44 @@
           }
         ]
       ]
+    },
+    "API De ElevenLabs": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send an audio file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tokens Gratis (5k)": {
+      "main": [
+        []
+      ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
+    "binaryMode": "separate",
     "availableInMCP": false,
     "timeSavedMode": "fixed",
     "callerPolicy": "workflowsFromSameOwner",
     "errorWorkflow": "ItyZo1I4kq8GBspEZkBjq"
   },
-  "versionId": "344b2cd3-d868-45af-808b-1999cccfebe2",
+  "versionId": "cfbcdbc7-807e-4d3c-a35b-854a93753a31",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "51cc9123a604a2c652df92102de159d4452d608b60087a069ea5ae12f7b477f0"
+    "instanceId": "20d28209856248e442ed12ef7a28e498d89a46e3767fba56bc1601f7fbced1e0"
   },
+  "nodeGroups": [],
   "id": "QBPApwMOockpaIgAmZFGH",
   "tags": []
 }
